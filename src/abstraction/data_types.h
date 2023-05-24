@@ -18,18 +18,24 @@
 //****************************************************
 /// USE KOKKOS
 //****************************************************
-#include "Kokkos_core.hpp"
+#include "Kokkos_Core.hpp"
 #define FUNCTION_DECORATOR KOKKOS_FORCEINLINE_FUNCTION
 #define DEVICE_LAMBDA KOKKOS_LAMBDA
 
 using defaultType = double;
 
 namespace abstract {
+template<typename... Args>
+inline void parallel_for(Args... args)
+{
+  Kokkos::parallel_for(args...);
+}
+
 template <typename T> class Scalar {
 private:
   using VTYPE = Kokkos::View<T *>;
   VTYPE deviceValue_;
-  VTYPE::HostMirror hostValue_;
+  typename VTYPE::HostMirror hostValue_;
 
 public:
   Scalar(std::string name, T initValue)
@@ -43,34 +49,30 @@ public:
 
   void copy_device_to_host() { Kokkos::deep_copy(deviceValue_, hostValue_); }
 
-  T* device_data() { return deviceValue_.data(); }
+  T *device_data() { return deviceValue_.data(); }
 
   T host_value() { return hostValue_[0]; }
 };
-
 template <typename T> class Vector {
 private:
   using VTYPE = Kokkos::View<T *>;
   VTYPE deviceValue_;
-  VTYPE::HostMirror hostValue_;
+  typename VTYPE::HostMirror hostValue_;
 
 public:
   Vector(std::string name, int size)
       : deviceValue_(name, size),
-        hostValue_(Kokkos::create_mirror_view(deviceValue_)) {
-  }
+        hostValue_(Kokkos::create_mirror_view(deviceValue_)) {}
 
   void copy_host_to_device() { Kokkos::deep_copy(hostValue_, deviceValue_); }
 
   void copy_device_to_host() { Kokkos::deep_copy(deviceValue_, hostValue_); }
 
-  T* device_data() { return deviceValue_.data(); }
+  T *device_data() { return deviceValue_.data(); }
 
   T host_value(int i) { return hostValue_[i]; }
 };
-using parallel_for = Kokkos::parallel_for;
 } // namespace abstract
-
 #elif defined(USE_AMREX)
 //****************************************************
 /// USE AMREX
@@ -83,58 +85,58 @@ namespace abstract {
 using parallel_for = amrex::ParallelFor;
 }
 #else
-//****************************************************
-/// USE STL
-//****************************************************
-#include <vector>
-#define FUNCTION_DECORATOR inline
-#define DEVICE_LAMBDA [=]
-using defaultType = double;
-namespace abstract {
-template <typename T> class Scalar {
-private:
-  using VTYPE = std::vector<T>;
-  VTYPE deviceValue_;
-  VTYPE &hostValue_;
+ //**************************************************** */
+ /// USE STL */
+ //**************************************************** */
+ #include <vector>
+ #define FUNCTION_DECORATOR inline
+ #define DEVICE_LAMBDA [=]
+ using defaultType = double;
+ namespace abstract {
+ template <typename T> class Scalar {
+ private:
+   using VTYPE = std::vector<T>;
+   VTYPE deviceValue_;
+   VTYPE &hostValue_;
 
-public:
-  Scalar(std::string /*name*/, T initValue)
-      : deviceValue_(1, initValue), hostValue_(deviceValue_) {}
+ public:
+   Scalar(std::string /*name*/, T initValue)
+       : deviceValue_(1, initValue), hostValue_(deviceValue_) {}
 
-  void copy_host_to_device() {}
+   void copy_host_to_device() {}
 
-  void copy_device_to_host() {}
+   void copy_device_to_host() {}
 
-  T* device_data(){ return deviceValue_.data(); }
+   T* device_data(){ return deviceValue_.data(); }
 
-  T host_value() { return hostValue_[0]; }
-};
-template <typename T> class Vector {
-private:
-  using VTYPE = std::vector<T>;
-  VTYPE deviceValue_;
-  VTYPE &hostValue_;
+   T host_value() { return hostValue_[0]; }
+ };
+ template <typename T> class Vector {
+ private:
+   using VTYPE = std::vector<T>;
+   VTYPE deviceValue_;
+   VTYPE &hostValue_;
 
-public:
-  Vector(std::string /*name*/, int size)
-      : deviceValue_(size), hostValue_(deviceValue_) {}
+ public:
+   Vector(std::string /*name*/, int size)
+       : deviceValue_(size), hostValue_(deviceValue_) {}
 
-  void copy_host_to_device() {}
+   void copy_host_to_device() {}
 
-  void copy_device_to_host() {}
+   void copy_device_to_host() {}
 
-  T* device_data(){ return deviceValue_.data(); }
+   T* device_data(){ return deviceValue_.data(); }
 
-  T host_value(int i) { return hostValue_[i]; }
-};
-// simple parallel for
-template <typename T, typename F> inline void parallel_for(T n, F &&f) {
-  for (T i = 0; i < n; ++i) {
-    f(i);
-  }
-}
+   T host_value(int i) { return hostValue_[i]; }
+ };
+ // simple parallel for
+ template <typename T, typename F> inline void parallel_for(T n, F &&f) {
+   for (T i = 0; i < n; ++i) {
+     f(i);
+   }
+ }
 
-} // namespace abstract
+ } // namespace abstract */
 #endif
 
 #endif

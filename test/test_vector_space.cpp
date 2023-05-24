@@ -11,6 +11,7 @@
 //
 // Adapted to use abstract
 
+#include "abstraction/data_types.h"
 #include "vs/trig_ops.h"
 #include "vs/vector_space.h"
 #include "gtest/gtest.h"
