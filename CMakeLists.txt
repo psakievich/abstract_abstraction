@@ -17,13 +17,13 @@ option(ENABLE_KOKKOS_TESTS "Build unit-tests against Kokkos" OFF)
 find_package(GTest REQUIRED)
 
 #stl unit test
-# add_executable(test_stl ${CMAKE_CURRENT_SOURCE_DIR}/unit_tests.cpp ${CMAKE_CURRENT_SOURCE_DIR}/test/test_vector_space.cpp)
-# target_link_libraries(test_stl GTest::gtest GTest::gtest_main)
-# target_include_directories(
-#   test_stl
-#   PRIVATE
-#   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
-#   $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
+add_executable(test_stl ${CMAKE_CURRENT_SOURCE_DIR}/unit_tests.cpp ${CMAKE_CURRENT_SOURCE_DIR}/test/test_vector_space.cpp)
+target_link_libraries(test_stl GTest::gtest GTest::gtest_main)
+target_include_directories(
+  test_stl
+  PRIVATE
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
+  $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
 
 # kokkos unit test
 if(ENABLE_KOKKOS_TESTS)
