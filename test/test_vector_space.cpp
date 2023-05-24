@@ -11,8 +11,8 @@
 //
 // Adapted to use abstract
 
-#include "trig_ops.h"
-#include "vector_space.h"
+#include "vs/trig_ops.h"
+#include "vs/vector_space.h"
 #include "gtest/gtest.h"
 
 namespace {

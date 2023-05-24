@@ -16,7 +16,7 @@
 
 #include <ostream>
 #include <cmath>
-#include "vector.h"
+#include "vs/vector.h"
 
 namespace vs {
 

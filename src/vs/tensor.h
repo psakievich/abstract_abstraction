@@ -13,9 +13,9 @@
 #ifndef VS_TENSOR_H
 #define VS_TENSOR_H
 
-#include "data_types.h"
-#include "vstraits.h"
-#include "vector.h"
+#include "abstraction/data_types.h"
+#include "vs/vstraits.h"
+#include "vs/vector.h"
 
 namespace vs {
 
@@ -137,6 +137,6 @@ using Tensor = TensorT<defaultType>;
 
 } // namespace vs
 
-#include "tensorI.h"
+#include "vs/tensorI.h"
 
 #endif /* VS_TENSOR_H */

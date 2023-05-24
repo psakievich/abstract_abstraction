@@ -14,8 +14,8 @@
 #ifndef VS_VECTOR_H
 #define VS_VECTOR_H
 
-#include "data_types.h"
-#include "vstraits.h"
+#include "abstraction/data_types.h"
+#include "vs/vstraits.h"
 
 namespace vs {
 
@@ -135,6 +135,6 @@ using Vector = VectorT<defaultType>;
 
 } // namespace vs
 
-#include "vectorI.h"
+#include "vs/vectorI.h"
 
 #endif /* VS_VECTOR_H */

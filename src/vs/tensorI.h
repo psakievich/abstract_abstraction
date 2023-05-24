@@ -15,8 +15,8 @@
 #define VS_TENSORI_H
 
 #include <cmath>
-#include "tensor.h"
-#include "trig_ops.h"
+#include "vs/tensor.h"
+#include "vs/trig_ops.h"
 
 namespace vs {
 
