@@ -25,20 +25,18 @@
 using defaultType = double;
 
 namespace abstract {
-template<typename... Args>
-inline void parallel_for(Args... args)
-{
+template <typename... Args> inline void parallel_for(Args... args) {
   Kokkos::parallel_for(args...);
 }
 
-template <typename T> class Scalar {
+class Scalar {
 private:
-  using VTYPE = Kokkos::View<T *>;
+  using VTYPE = Kokkos::View<defaultType *>;
   VTYPE deviceValue_;
   typename VTYPE::HostMirror hostValue_;
 
 public:
-  Scalar(std::string name, T initValue)
+  Scalar(std::string name, defaultType initValue)
       : deviceValue_(name, 1),
         hostValue_(Kokkos::create_mirror_view(deviceValue_)) {
     hostValue_[0] = initValue;
@@ -49,10 +47,11 @@ public:
 
   void copy_device_to_host() { Kokkos::deep_copy(deviceValue_, hostValue_); }
 
-  T *device_data() { return deviceValue_.data(); }
+  defaultType *device_data() { return deviceValue_.data(); }
 
-  T host_value() { return hostValue_[0]; }
+  defaultType host_value() { return hostValue_[0]; }
 };
+
 template <typename T> class Vector {
 private:
   using VTYPE = Kokkos::View<T *>;
@@ -82,61 +81,107 @@ public:
 #define DEVICE_LAMBDA [=] AMREX_GPU_DEVICE
 using defaultType = amrex::Real;
 namespace abstract {
-using parallel_for = amrex::ParallelFor;
+template <typename... Args> inline void parallel_for(Args... args) {
+  amrex::ParallelFor(args...);
+}
+
+class Scalar {
+private:
+  using VTYPE = amrex::Gpu::DeviceScalar<defaultType>;
+  VTYPE deviceValue_;
+
+public:
+  Scalar(std::string /*name*/, defaultType initValue)
+      : deviceValue_(initValue) {}
+
+  void copy_host_to_device() {}
+
+  void copy_device_to_host() {}
+
+  defaultType *device_data() { return deviceValue_.dataPtr(); }
+
+  defaultType host_value() { return deviceValue_.dataValue(); }
+};
+
+template <typename T> class Vector {
+private:
+  using VTYPE = amrex::Gpu::DeviceVector<T>;
+  VTYPE deviceValue_;
+  amrex::Vector<T> hostValue_;
+
+public:
+  Vector(std::string /*name*/, int size)
+      : deviceValue_(size), hostValue_(size) {}
+
+  void copy_host_to_device() {
+    amrex::Gpu::copy(amrex::Gpu::hostToDevice, hostValue_.begin(),
+                     hostValue_.end(), deviceValue_.begin());
+  }
+
+  void copy_device_to_host() {
+    amrex::Gpu::copy(amrex::Gpu::deviceToHost, deviceValue_.begin(),
+                     deviceValue_.end(), hostValue_.begin());
+  }
+
+  T *device_data() { return deviceValue_.dataPtr(); }
+
+  T host_value(int i) { return hostValue_[i]; }
+};
 }
 #else
- //**************************************************** */
- /// USE STL */
- //**************************************************** */
- #include <vector>
- #define FUNCTION_DECORATOR inline
- #define DEVICE_LAMBDA [=]
- using defaultType = double;
- namespace abstract {
- template <typename T> class Scalar {
- private:
-   using VTYPE = std::vector<T>;
-   VTYPE deviceValue_;
-   VTYPE &hostValue_;
+//**************************************************** */
+/// USE STL */
+//**************************************************** */
+#include <vector>
+#define FUNCTION_DECORATOR inline
+#define DEVICE_LAMBDA [=]
+using defaultType = double;
+namespace abstract {
+class Scalar {
+private:
+  using VTYPE = std::vector<defaultType>;
+  VTYPE deviceValue_;
+  VTYPE &hostValue_;
 
- public:
-   Scalar(std::string /*name*/, T initValue)
-       : deviceValue_(1, initValue), hostValue_(deviceValue_) {}
+public:
+  Scalar(std::string /*name*/, defaultType initValue)
+      : deviceValue_(1, initValue), hostValue_(deviceValue_) {}
 
-   void copy_host_to_device() {}
+  void copy_host_to_device() {}
 
-   void copy_device_to_host() {}
+  void copy_device_to_host() {}
 
-   T* device_data(){ return deviceValue_.data(); }
+  defaultType *device_data() { return deviceValue_.data(); }
 
-   T host_value() { return hostValue_[0]; }
- };
- template <typename T> class Vector {
- private:
-   using VTYPE = std::vector<T>;
-   VTYPE deviceValue_;
-   VTYPE &hostValue_;
+  defaultType host_value() { return hostValue_[0]; }
+};
 
- public:
-   Vector(std::string /*name*/, int size)
-       : deviceValue_(size), hostValue_(deviceValue_) {}
+template <typename T> class Vector {
+private:
+  using VTYPE = std::vector<T>;
+  VTYPE deviceValue_;
+  VTYPE &hostValue_;
 
-   void copy_host_to_device() {}
+public:
+  Vector(std::string /*name*/, int size)
+      : deviceValue_(size), hostValue_(deviceValue_) {}
 
-   void copy_device_to_host() {}
+  void copy_host_to_device() {}
 
-   T* device_data(){ return deviceValue_.data(); }
+  void copy_device_to_host() {}
 
-   T host_value(int i) { return hostValue_[i]; }
- };
- // simple parallel for
- template <typename T, typename F> inline void parallel_for(T n, F &&f) {
-   for (T i = 0; i < n; ++i) {
-     f(i);
-   }
- }
+  T *device_data() { return deviceValue_.data(); }
 
- } // namespace abstract */
+  T host_value(int i) { return hostValue_[i]; }
+};
+// simple parallel for
+template <typename T, typename F> inline void parallel_for(T n, F &&f) {
+  for (T i = 0; i < n; ++i) {
+    f(i);
+  }
+}
+
+} // namespace abstract */
 #endif
 
 #endif
