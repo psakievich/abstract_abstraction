@@ -10,6 +10,11 @@ jobs:
   CPU-Tests:
     name: CPU-Tests
     runs-on: ubuntu-latest
+    container:
+      image: ecpe4s/exawind-snapshot
+      env:
+          SPACK_MANAGER: /spack-manager
+          E4S_MACHINE: true
     steps:
       - name: Cancel previous runs
         uses: styfle/cancel-workflow-action@0.6.0
@@ -19,23 +24,19 @@ jobs:
         uses: actions/checkout@v3
         with:
           path: main
-      - name: Spack-Clone
-        uses: actions/checkout@v3
-        with:
-          repository: spack/spack
-          path: spack
       - name: Setup Dependencies
         run: |
           /bin/bash -c " \
-          source ${GITHUB_WORKSPACE}/spack/share/spack/setup-env.sh && \
-          spack bootstrap now && \
+          source ${SPACK_MANAGER}/start.sh && \
+          spack-start && \
           spack install kokkos amrex googletest \
           "
       - name: Test
         working-directory: ${GITHUB_WORKSPACE}/main
         run: |
           /bin/bash -c " \
-          source ${GITHUB_WORKSPACE}/spack/share/spack/setup-env.sh && \
+          source ${SPACK_MANAGER}/start.sh && \
+          spack-start && \
           spack load kokkos amrex googletest && \
           mkdir build && \
           cd build && \
