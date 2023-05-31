@@ -1,0 +1,51 @@
+name: abstraction_CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  
+jobs:
+  CPU-Tests:
+    name: CPU-Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Cancel previous runs
+        uses: styfle/cancel-workflow-action@0.6.0
+        with:
+          access_token: ${{github.token}}
+      - name: Clone
+        uses: actions/checkout@v3
+        with:
+          path: main
+      - name: Spack-Clone
+        uses: actions/checkout@v3
+        with:
+          repository: spack/spack
+          path: spack
+      - name: Setup Dependencies
+        run: |
+          /bin/bash -c " \
+          source ${GITHUB_WORKSPACE}/spack/share/spack/setup-env.sh && \
+          spack bootstrap now && \
+          spack install kokkos amrex googletest \
+          "
+      - name: Test
+        working-directory: ${GITHUB_WORKSPACE}/main
+        run: |
+          /bin/bash -c " \
+          source ${GITHUB_WORKSPACE}/spack/share/spack/setup-env.sh && \
+          spack load kokkos amrex googletest && \
+          mkdir build && \
+          cd build && \
+          cmake ../ -DENABLE_KOKKOS_TESTS -DENABLE_AMREX_TESTS && \
+          make -j $(nproc) && \
+          ./test_stl && \
+          ./test_amrex && \
+          ./test_kokkos && \
+          "
+
+
+        
+
