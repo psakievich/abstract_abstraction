@@ -32,7 +32,7 @@ jobs:
           spack install kokkos amrex googletest \
           "
       - name: Test
-        working-directory: ${GITHUB_WORKSPACE}/main
+        working-directory: ${GITHUB_WORKSPACE}
         run: |
           /bin/bash -c " \
           source ${SPACK_MANAGER}/start.sh && \
